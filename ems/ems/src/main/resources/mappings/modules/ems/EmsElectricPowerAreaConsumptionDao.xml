@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.ems.dao.EmsElectricPowerAreaConsumptionDao">
+	
+
+	<select id="findList" resultType="EmsElectricPowerAreaConsumption">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+			<if test="qryStartTime !=null and qryEndTime !=null">
+				and a.data_date_time between #{qryStartTime} and #{qryEndTime}
+			</if>
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select>
+
+
+	<select id="isStockedRec" parameterType="EmsElectricPowerAreaConsumption" resultType="EmsElectricPowerAreaConsumption">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		where a.area_code = #{areaCode} and a.data_date_time = #{dataDateTime} and a.data_type = #{dataType}
+		ORDER BY a.data_date_time
+		LIMIT 1
+	</select>
+
+	<select id="getStockPendulum" parameterType="EmsElectricPowerAreaConsumption" resultType="date">
+		select data_date_time
+		from ems_electric_power_area_consumption
+		where data_date = #{dataDate} and data_type = #{dataType}
+	</select>
+</mapper>

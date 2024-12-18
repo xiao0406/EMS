@@ -1,0 +1,48 @@
+
+server:
+    port: 8991
+    # 优雅停机模式
+    shutdown: "graceful"
+    servlet:
+        context-path: /dmp
+spring:
+    application:
+        name: dmp-mqtt
+    profiles:
+        active: dev
+    lifecycle:
+        # 优雅停机超时时间
+        timeout-per-shutdown-phase: "120s"
+    datasource:
+        druid:
+            initial-size: 10
+            min-idle: 10
+            max-active: 20
+            max-wait: 30000
+            time-between-eviction-runs-millis: 60000
+            min-evictable-idle-time-millis: 300000
+            test-while-idle: true
+            test-on-borrow: false
+            test-on-return: false
+            remove-abandoned: true
+            remove-abandoned-timeout: 1800
+            #pool-prepared-statements: false
+            #max-pool-prepared-statement-per-connection-size: 20
+            filters: stat, wall
+            validation-query: SELECT 'x'
+            aop-patterns: com.cscec.dmp.mqtt.*
+            stat-view-servlet:
+                url-pattern: /druid/*
+                reset-enable: true
+                login-username: admin
+                login-password: zjgg@yfzx
+
+# Mybatis-plus配置
+mybatis-plus:
+    mapper-locations: classpath:com/cscec/**/*Mapper.xml
+    typeAliasesPackage: com.cscec.**.entity
+    configuration:
+        map-underscore-to-camel-case: true
+        cache-enabled: false
+        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.ems.dao.EmsMeterCollectedDataDao">
+	
+	<!-- 查询数据 -->
+	<select id="findList" resultType="EmsMeterCollectedData">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+			<if test="dataDateTimeStart !=null and dataDateTimeEnd !=null">
+				and a.data_date_time between #{dataDateTimeStart} and #{dataDateTimeEnd}
+			</if>
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select>
+
+	<!-- 查询统计基础数据查询（此处的sql一定不要修改，若是需要，复制一份重命名后修改） -->
+	<select id="calculateBaseDataList" resultType="EmsMeterCollectedData">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+			<if test="dataDateTimeStart !=null and dataDateTimeEnd !=null">
+				and a.data_date_time between #{dataDateTimeStart} and #{dataDateTimeEnd}
+			</if>
+		</where>
+		ORDER BY a.data_date_time
+	</select>
+
+	<select id="getStockPendulum" parameterType="EmsMeterCollectedData" resultType="date">
+		select
+		data_date_time
+		from ems_meter_collected_data
+		where data_date = #{dataDate} and data_type = #{dataType} and not_valid = '0'
+	</select>
+
+	<select id="isStockedRec" parameterType="EmsMeterCollectedData" resultType="EmsMeterCollectedData">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		where a.device_id = #{deviceId} and a.data_date_time = #{dataDateTime} and a.data_type = #{dataType}
+		ORDER BY a.data_date_time
+		LIMIT 1
+	</select>
+
+	<select id="isStockedRec" parameterType="EmsMeterCollectedData" resultType="EmsMeterCollectedData">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		where a.device_id = #{deviceId} and a.data_date_time = #{dataDateTime} and a.data_type = #{dataType}
+		ORDER BY a.data_date_time
+		LIMIT 1
+	</select>
+
+	<select id="getDeviceLastData" resultType="EmsMeterCollectedData">
+		select * from ems_meter_collected_data where device_id = #{deviceId} order by data_date_time desc limit 1;
+	</select>
+
+<!--	<select id="meterPendulumDisplay" parameterType="EmsMeterCollectedData" resultType="EmsMeterCollectedData">-->
+<!--		SELECT-->
+<!--		    a.device_id as deviceId,-->
+<!--		    a.device_name as deviceName,-->
+<!--		    a.positive_active_energy as positiveActiveEnergy,-->
+<!--		    a.reverse_active_energy as reverseActiveEnergy,-->
+<!--		    a.positive_reactive_energy as positiveReactiveEnergy,-->
+<!--		    a.reverse_reactive_energy as reverseReactiveEnergy,-->
+<!--		    b.qt as qt-->
+<!--		FROM ${sqlMap.table.toSql()}-->
+<!--		join ems_meter b on a.device_id = b.meter_code and b.status = '0'-->
+<!--		where b.corp_code = #{corpCode}-->
+<!--		and b.company_code = #{companyCode}-->
+<!--		and a.data_date_time = #{dataDateTime}-->
+<!--		ORDER BY a.data_date_time, b.sort-->
+<!--	</select>-->
+
+	<select id="meterPendulumDisplay" parameterType="com.jeesite.modules.ems.entity.EmsMeterCollectedData" resultType="com.jeesite.modules.ems.entity.MeterPendulumDisplayEntity">
+		select
+			a.meter_code as deviceId,
+			a.meter_name as deviceName,
+			a.qt,
+			IFNULL(b.positive_active_energy,'-') as positiveActiveEnergyDisplayStart,
+			IFNULL(c.positive_active_energy,'-') as positiveActiveEnergyDisplayEnd,
+			IFNULL(c.positive_active_energy - b.positive_active_energy,'-') as positiveActiveEnergyDisplayDiffValue,
+			IFNULL(round((c.positive_active_energy - b.positive_active_energy) * a.qt, 2),'-') as positiveActiveEnergyConsumption
+		from
+			(select meter_code,meter_name,qt,sort from ems_meter where status = '0' and corp_code = #{corpCode} and company_code = #{companyCode}) a
+				left join
+			(select device_id,positive_active_energy from ems_meter_collected_data where data_date_time = #{dataMap.startQueryTime}) b on a.meter_code = b.device_id
+				left join
+			(select device_id,positive_active_energy from ems_meter_collected_data where data_date_time = #{dataMap.endQueryTime}) c on a.meter_code = c.device_id
+		order by a.sort
+	</select>
+
+</mapper>

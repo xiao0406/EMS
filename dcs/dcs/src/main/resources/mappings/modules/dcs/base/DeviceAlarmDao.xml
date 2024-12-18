@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.dcs.base.dao.DeviceAlarmDao">
+
+	<!-- 查询数据
+	<select id="findList" resultType="DeviceAlarm">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select>-->
+
+
+	<select id="findDeviceAlarm" resultType="com.jeesite.modules.dcs.base.entity.DeviceAlarm">
+		select * from dcs_device_alarm
+		where device_code = #{deviceCode}
+		order by end_time desc
+		limit #{size}
+	</select>
+</mapper>

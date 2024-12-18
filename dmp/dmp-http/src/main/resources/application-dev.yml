@@ -1,0 +1,42 @@
+# 开发环境配置
+
+# 数据源配置
+spring:
+    datasource:
+        dynamic:
+            # 设置默认的数据源或者数据源组,默认值即为master
+            primary: dcs
+            # 严格匹配数据源,默认false.true未匹配到指定数据源时抛异常,false使用默认数据源
+            strict: false
+            datasource:
+                dcs:
+                    url: jdbc:mysql://10.50.103.184:3306/dcs?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8
+                    username: root
+                    password: 123456
+                    driver-class-name: com.mysql.cj.jdbc.Driver
+                dmp:
+                    url: jdbc:mysql://10.50.103.184:3306/dmp?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8
+                    driver-class-name: com.mysql.cj.jdbc.Driver
+                    username: root
+                    password: 123456
+    redis:
+        host: 127.0.0.1
+        port: 6379
+        password: zjgg@123
+        timeout: 20000
+        lettuce:
+            pool:
+                #连接池最大连接数
+                max-active: 1000
+                # 连接池最大等待时间，-1表示不做限制
+                max-wait: 100ms
+                # 最大空闲连接
+                max-idle: 5
+                # 最小空闲连接
+                min-idle: 1
+
+# 日志配置
+logging:
+    level:
+        com.cscec: debug
+        com.baomidou.mybatisplus: debug

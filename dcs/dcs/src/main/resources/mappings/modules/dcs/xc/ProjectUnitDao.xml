@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.dcs.xc.dao.ProjectUnitDao">
+
+	<select id="deviceProd" resultType="com.cscec.common.imir.dto.DeviceRatio">
+		select a.device_code,a.device_name,b.weld_time,b.run_time from
+			(select device_code,device_name from dcs_device where device_code = #{deviceCode}) a left join
+			(select device_code,run_time,weld_time from dcs_xc_wc_prod where device_code = #{deviceCode} and record_date = #{recordDate}) b
+			on a.device_code = b.device_code
+	</select>
+
+
+	<!-- 设备状态分布 -->
+	<select id="deviceStatus" resultType="com.cscec.common.imir.dto.state.DeviceStatus">
+		select device_code,
+		       run_status
+		from dcs_unit a inner join dcs_device b on a.id = b.unit_id
+		where a.unit_code = #{unitCode};
+	</select>
+
+	<!-- 设备利用率 -->
+	<select id="deviceRatio" resultType="com.cscec.common.imir.dto.DeviceRatio">
+		select ab.device_code,
+		       ab.device_name,
+		       c.run_time,
+		       c.weld_time,
+		       c.utilization_ratio
+		from
+			(select b.device_code,b.device_name from dcs_unit a inner join dcs_device b on a.id = b.unit_id where a.unit_code=#{unitCode}) ab
+		left join
+			(select device_code,run_time,weld_time,ROUND(IFNULL(weld_time/run_time,0)) as utilization_ratio
+			 from dcs_xc_wc_prod where record_date = #{recordDate}) c
+		on ab.device_code = c.device_code;
+	</select>
+
+	<!-- 设备列表 -->
+	<select id="deviceList" resultType="com.cscec.common.imir.dto.DeviceInfo">
+		select device_code,
+		       device_name,
+		       device_brand,
+		       device_model,
+		       run_status
+		from dcs_device where unit_code = #{unitCode}
+	</select>
+
+	<!-- 辅材使用量 -->
+	<select id="materialsUsage" resultType="com.cscec.common.imir.dto.MaterialsUsage">
+		select record_date,
+		       sum(wire_weight) as wire_weight,
+		       sum(gas_usage) as gas_usage,
+		       sum(electric_usage) as electric_usage
+		from dcs_xc_wc_prod
+		where record_date = #{recordDate}
+		and device_code in (select b.device_code
+		            from dcs_unit a inner join dcs_device b on a.id = b.unit_id
+		            where a.unit_code=#{unitCode})
+		group by record_date;
+	</select>
+
+	<!-- 辅材使用记录 -->
+	<select id="materialsUsageList" resultType="com.cscec.common.imir.dto.MaterialsUsage">
+		select record_date,
+			   sum(wire_weight) as wire_weight,
+			   sum(gas_usage) as gas_usage,
+			   sum(electric_usage) as electric_usage
+		from dcs_xc_wc_prod
+		where record_date between #{startDate} and #{endDate}
+		  and device_code in (select b.device_code
+							  from dcs_unit a inner join dcs_device b on a.id = b.unit_id
+							  where a.unit_code=#{unitCode})
+		group by record_date
+		order by record_date;
+	</select>
+
+	<!-- 生产排名 -->
+	<select id="deviceYield" resultType="com.cscec.common.imir.dto.DeviceYield">
+		select ab.device_code,
+			   ab.device_name,
+			   ab.run_status,
+			   c.record_date,
+			   c.run_time,
+			   c.weld_time,
+			   c.wire_weight,
+			   c.gas_usage,
+			   c.electric_usage
+		from
+			(select b.device_code,b.device_name,b.run_status from dcs_unit a inner join dcs_device b on a.id = b.unit_id where a.unit_code = 'cs_001') ab
+				left join
+			(select device_code,record_date,run_time,weld_time,wire_weight,gas_usage,electric_usage
+			 from dcs_xc_wc_prod where record_date = '2023-09-08') c
+			on ab.device_code = c.device_code
+		order by wire_weight desc;
+	</select>
+</mapper>

@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.ems.dao.EmsMeterDao">
+	
+	<!-- 查询数据 -->
+	<select id="findList" resultType="EmsMeter">
+		SELECT
+		    ${sqlMap.column.toSql()},
+		    am.area_code as areaCode,
+			am.electricity_mark as electricityMark
+		FROM ${sqlMap.table.toSql()}
+		join ems_area_meter am on a.meter_code = am.meter_code
+		<where>
+			${sqlMap.where.toSql()}
+			<if test="areaCode != null and areaCode != ''">
+				and am.area_code = #{areaCode}
+			</if>
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select>
+
+	<select id="findByMeterCode" resultType="EmsMeter">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		where a.meter_code = #{meterCode}
+		limit 1
+	</select>
+
+	<update id="deleteBatch" parameterType="EmsMeter">
+		<if test="id_in != null and id_in.length > 0">
+			update ems_meter
+			set status = '1'
+			where meter_code in(
+				<foreach collection="id_in" item="id" separator=",">
+					#{id}
+				</foreach>
+			)
+		</if>
+	</update>
+
+	<select id="meterOfficeList" parameterType="EmsMeterOffice" resultType="EmsMeterOffice">
+		select
+		emo.meter_code,
+		emo.office_code,
+		jso.office_name,
+		emo.power_ratio
+		from ems_meter_office emo
+		join js_sys_office jso on emo.office_code = jso.office_code
+		where meter_code = #{meterCode}
+	</select>
+
+	<select id="getCompanyWorkshop" parameterType="String" resultType="com.jeesite.modules.sys.entity.Office">
+		SELECT
+			a.`corp_code`,
+			a.`corp_name`,
+			a.`status`,
+			a.`create_by`,
+			a.`create_date`,
+			a.`update_by`,
+			a.`update_date`,
+			a.`remarks`,
+			a.`parent_code`,
+			a.`parent_codes`,
+			a.`tree_sort`,
+			a.`tree_sorts`,
+			a.`tree_leaf`,
+			a.`tree_level`,
+			a.`tree_names`,
+			a.`office_code`,
+			a.`view_code`,
+			a.`office_name`,
+			a.`full_name`,
+			a.`office_type`,
+			a.`leader`,
+			a.`phone`,
+			a.`address`,
+			a.`zip_code`,
+			a.`email`,
+			a.`extend_s1`,
+			a.`extend_s2`,
+			a.`extend_s3`,
+			a.`extend_s4`,
+			a.`extend_s5`,
+			a.`extend_s6`,
+			a.`extend_s7`,
+			a.`extend_s8`,
+			a.`extend_i1`,
+			a.`extend_i2`,
+			a.`extend_i3`,
+			a.`extend_i4`,
+			a.`extend_f1`,
+			a.`extend_f2`,
+			a.`extend_f3`,
+			a.`extend_f4`,
+			a.`extend_d1`,
+			a.`extend_d2`,
+			a.`extend_d3`,
+			a.`extend_d4`,
+			a.`extend_json`
+		FROM js_sys_office a
+		where FIND_IN_SET( #{companyCode}, a.parent_codes ) and a.status = '0' and a.extend_s8 = '0'
+		order by a.tree_sort
+	</select>
+
+	<update id="saveThreshold" parameterType="EmsMeter">
+		update ems_meter
+		set no_load_threshold = #{noLoadThreshold}, operation_threshold = #{operationTreshold}
+		where meter_code = #{meterCode}
+	</update>
+
+	<resultMap id="listMap" type="EmsMeter">
+		<!--team中的基本属性-->
+		<id column="meter_code" property="meterCode"/>
+		<result column="meter_name" property="meterName"/>
+		<result column="company_code" property="companyCode"/>
+		<result column="company_name" property="companyName"/>
+		<result column="brand_model" property="brandModel"/>
+		<result column="pt" property="pt"/>
+		<result column="ct" property="ct"/>
+		<result column="qt" property="qt"/>
+		<result column="installation_date" property="installationDate"/>
+		<result column="installation_position" property="installationPosition"/>
+		<result column="gps" property="gps"/>
+		<result column="px" property="px"/>
+		<result column="electricity_type" property="electricityType"/>
+		<result column="status" property="status"/>
+		<result column="no_load_threshold" property="noLoadThreshold"/>
+		<result column="operation_threshold" property="operationTreshold"/>
+
+		<!--关联属性的映射关系-->
+		<collection property="meterOfficeList" javaType="list" ofType="EmsMeterOffice">
+			<id column="sub_meter_code" property="meterCode"/>
+			<result column="office_code" property="officeCode"/>
+			<result column="office_name" property="officeName"/>
+			<result column="power_ratio" property="powerRatio"/>
+		</collection>
+	</resultMap>
+
+	<sql id="listColumn">
+		a.meter_code,
+		a.meter_name,
+		a.company_code,
+		a.company_name,
+		a.brand_model,
+		a.pt,
+		a.ct,
+		a.qt,
+		a.installation_date,
+		a.installation_position,
+		a.gps,
+		a.px,
+		a.electricity_type,
+		a.status,
+		a.no_load_threshold,
+		a.operation_threshold,
+		emo.meter_code as sub_meter_code,
+		emo.office_code,
+		jso.office_name,
+		emo.power_ratio
+	</sql>
+
+	<sql id="listTables">
+		FROM ems_meter a
+		left join ems_meter_office emo on a.meter_code = emo.meter_code
+		left join js_sys_office jso on emo.office_code = jso.office_code
+	</sql>
+
+	<select id="findAllList" resultMap="listMap">
+		SELECT
+		<include refid="listColumn"></include>
+		<include refid="listTables"></include>
+		<where>
+			${sqlMap.where.toSql()}
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select>
+
+	<select id="findCodes" resultType="java.util.List">
+		SELECT ems_meter
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select>
+
+	<select id="findAllMeterCode" resultType="java.lang.String">
+		SELECT meter_code
+		FROM ems_meter em
+	</select>
+
+	<select id="getMertInfoByCodeList" resultMap="listMap">
+		SELECT meter_code,meter_name,company_code,company_name
+		FROM ems_meter em
+		<where>
+		<if test="loseList != null and loseList.size() != 0">
+			and em.meter_code in (
+			<foreach collection="loseList" item="deviceCode" separator=",">
+				#{deviceCode}
+			</foreach>
+			)
+		</if>
+		</where>
+	</select>
+
+</mapper>

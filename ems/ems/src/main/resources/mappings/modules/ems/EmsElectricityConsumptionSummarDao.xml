@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.ems.dao.EmsElectricityConsumptionSummarDao">
+
+    <!-- 查询数据
+    <select id="findList" resultType="EmsElectricityConsumptionSummar">
+        SELECT ${sqlMap.column.toSql()}
+        FROM ${sqlMap.table.toSql()}
+        <where>
+            ${sqlMap.where.toSql()}
+        </where>
+        ORDER BY ${sqlMap.order.toSql()}
+    </select> -->
+
+    <select id="findOne" resultType="com.jeesite.modules.ems.entity.EmsElectricityConsumptionSummar">
+        select * from ems_electricity_consumption_summar
+        <where>
+            <if test='companyCode != null and companyCode != ""'>
+                and company_code =#{companyCode}
+            </if>
+            <if test='findType != null and findType != ""'>
+                and find_type =#{findType}
+            </if>
+        </where>
+    </select>
+
+</mapper>

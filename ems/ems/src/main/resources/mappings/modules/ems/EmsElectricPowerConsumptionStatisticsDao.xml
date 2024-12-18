@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.ems.dao.EmsElectricPowerConsumptionStatisticsDao">
+	
+	<!-- 查询数据 -->
+	<select id="findList" resultType="EmsElectricPowerConsumptionStatistics">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+			<if test="qryStartTime !=null and qryEndTime !=null">
+				and a.data_date_key between #{qryStartTime} and #{qryEndTime}
+			</if>
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select>
+
+	<!-- 查询数据 -->
+	<select id="findMeterSortList" resultType="EmsElectricPowerConsumptionStatistics">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		join ems_meter b on a.device_id = b.meter_code
+		<where>
+			${sqlMap.where.toSql()}
+			<if test="qryStartTime !=null and qryEndTime !=null">
+				and a.data_date_key between #{qryStartTime} and #{qryEndTime}
+			</if>
+		</where>
+		ORDER BY a.data_date_key, b.sort
+	</select>
+
+	<select id="isStockedRec" parameterType="EmsElectricPowerConsumptionStatistics" resultType="EmsElectricPowerConsumptionStatistics">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		where a.device_id = #{deviceId} and a.data_date_key = #{dataDateKey} and a.data_type = #{dataType}
+		ORDER BY a.data_date_key
+		LIMIT 1
+	</select>
+
+	<select id="meterMonthEfficacy" parameterType="com.jeesite.modules.ems.entity.EmsStatisticsReportEntity" resultType="com.jeesite.modules.ems.entity.EmsStatisticsEfficacyEntity">
+		select
+			eepcs.device_id as deviceId,
+			eepcs.device_name as deviceName,
+			eepcs.data_date_key as dataDateKey,
+			IFNULL(eepcs.positive_active_energy,0) as electricityConsumption,
+			IFNULL(emy.yield,0) as yield
+		from ems_electric_power_consumption_statistics eepcs
+		join ems_meter b on eepcs.device_id = b.meter_code
+		left join ems_meter_yield emy on eepcs.device_id = emy.meter_code and eepcs.data_date_key = emy.data_month
+		where eepcs.company_code = #{companyCode}
+		      and eepcs.data_type = #{temporalGranularity}
+			  and eepcs.data_date_key between #{qryStartTime} and #{qryEndTime}
+		order by eepcs.data_date_key, b.sort
+	</select>
+
+	<select id="meterYearEfficacy" parameterType="com.jeesite.modules.ems.entity.EmsStatisticsReportEntity" resultType="com.jeesite.modules.ems.entity.EmsStatisticsEfficacyEntity">
+		select
+			eepcs.device_id as deviceId,
+			eepcs.device_name as deviceName,
+			eepcs.data_date_key as dataDateKey,
+			IFNULL(eepcs.positive_active_energy,0) as electricityConsumption,
+			IFNULL(emy.yield,0) as yield
+		from ems_electric_power_consumption_statistics eepcs
+		join ems_meter b on eepcs.device_id = b.meter_code
+		left join (
+			select
+				meter_code,
+				SUBSTRING_INDEX(data_month, '-',1) as data_year,
+				sum(yield) as yield
+			from ems_meter_yield
+			group by meter_code, data_year
+		) emy on eepcs.device_id = emy.meter_code and eepcs.data_date_key = emy.data_year
+		where eepcs.company_code = #{companyCode}
+		  	and eepcs.data_type = 'VD_Year'
+		  	and eepcs.data_date_key between #{qryStartTime} and #{qryEndTime}
+		order by eepcs.data_date_key, b.sort
+	</select>
+
+	<select id="getStageCumulativeConsumption" resultType="java.lang.Double">
+		select
+			sum(eepc.positive_active_energy)
+		from ems_electric_power_consumption_statistics eepc
+		where eepc.corp_code = #{corpCode}
+		  and eepc.company_code = #{companyCode}
+		  and eepc.data_date_key BETWEEN #{startKey} and #{endKey}
+		  and eepc.data_type = #{temporalGranularity}
+			<if test="meterMarkList != null and meterMarkList.size() != 0">
+				and eepc.device_id in (
+					<foreach collection="meterMarkList" item="deviceCode" separator=",">
+						#{deviceCode}
+					</foreach>
+				)
+			</if>
+	</select>
+
+	<select id="getStageConsumption2EChart" resultType="com.jeesite.modules.ems.entity.EChartData">
+		select
+			eepc.data_date_key as label,
+			sum(eepc.positive_active_energy) as value
+		from ems_electric_power_consumption_statistics eepc
+		where eepc.corp_code = #{corpCode} and eepc.company_code = #{companyCode}
+		  and eepc.data_date_key BETWEEN #{startKey} and #{endKey}
+		  and eepc.data_type = #{temporalGranularity}
+			<if test="meterMarkList != null and meterMarkList.size() != 0">
+				and eepc.device_id in (
+				<foreach collection="meterMarkList" item="deviceCode" separator=",">
+					#{deviceCode}
+				</foreach>
+				)
+			</if>
+		group by eepc.data_date_key
+	</select>
+
+	<select id="getAreaStageCumulativeConsumption" parameterType="EmsElectricPowerConsumptionStatistics" resultType="EmsElectricPowerAreaConsumptionStatistics">
+		SELECT
+			ANY_VALUE(eepc.data_date_key) as data_date_key,
+			ANY_VALUE(eepc.data_type) as data_type,
+			sum( eepc.positive_active_energy ) AS positive_active_energy,
+			sum( eepc.reverse_active_power ) AS reverse_active_power,
+			sum( eepc.positive_reactive_energy ) AS positive_reactive_energy,
+			sum( eepc.reverse_reactive_power ) AS reverse_reactive_power
+		FROM ems_area ea
+			 JOIN ems_area_meter eam ON ea.area_code = eam.area_code
+			 JOIN ems_electric_power_consumption_statistics eepc ON eam.meter_code = eepc.device_id
+		WHERE ea.corp_code = #{corpCode}
+		  AND ( ea.area_code = #{areaCode} OR ea.parent_codes LIKE CONCAT('%', #{areaCode}, '%' ))
+			<if test="areaMarkList != null and areaMarkList.size() != 0">
+				and eepc.device_id in (
+					<foreach collection="areaMarkList" item="deviceCode" separator=",">
+						#{deviceCode}
+					</foreach>
+				)
+			</if>
+		  AND eepc.data_date_key  = #{dataDateKey}
+		  AND eepc.data_type = #{dataType}
+	</select>
+
+	<select id="activeEnergyEChart" parameterType="EmsElectricPowerConsumptionStatistics" resultType="EmsElectricPowerConsumptionStatistics">
+		select
+			eepcs.data_date_key,
+			sum(eepcs.positive_active_energy) as positive_active_energy,
+			sum(eepcs.reverse_active_power) as reverse_active_power,
+			sum(eepcs.positive_reactive_energy) as positive_reactive_energy,
+			sum(eepcs.reverse_reactive_power) as reverse_reactive_power
+		from ems_area ea
+			join ems_area_meter eam on ea.area_code = eam.area_code
+			join ems_electric_power_consumption_statistics eepcs on eam.meter_code = eepcs.device_id
+		where ea.corp_code = #{corpCode}
+			<if test="areaCode !=null and areaCode !=''">
+				AND ( ea.area_code = #{areaCode} OR ea.parent_codes LIKE CONCAT('%', #{areaCode}, '%' ))
+			</if>
+		    and eepcs.data_date_key BETWEEN #{qryStartTime} and #{qryEndTime}
+			<if test="deviceId !=null and deviceId !=''">
+				and eepcs.device_id = #{deviceId}
+			</if>
+			<if test="areaMarkList != null and areaMarkList.size() != 0">
+				and eepcs.device_id in (
+				<foreach collection="areaMarkList" item="deviceCode" separator=",">
+					#{deviceCode}
+				</foreach>
+				)
+			</if>
+		    and eepcs.data_type = #{dataType}
+		group by eepcs.data_date_key
+	</select>
+
+	<select id="consumptionRanking" parameterType="EmsElectricPowerConsumptionStatistics" resultType="com.jeesite.modules.ems.entity.EChartData">
+		SELECT
+		a.device_name as label,
+		a.positive_active_energy as value
+		from ems_electric_power_consumption_statistics a
+		<where>
+			${sqlMap.where.toSql()}
+		</where>
+		ORDER BY a.positive_active_energy desc
+	</select>
+
+	<select id="workEfficiencyListData"
+			parameterType="com.jeesite.modules.ems.entity.DeviceWorkEfficiencyQryEntity"
+			resultType="com.jeesite.modules.ems.entity.DeviceWorkEfficiencyEntity">
+		SELECT
+			a.device_name as deviceName,
+			a.data_date_key as dateKey,
+			ifnull(y.yield, 0) as yield,
+			a.positive_active_energy as energy,
+			IF( ifnull( y.yield, 0) = 0,
+			    0,
+			    ROUND( a.positive_active_energy / ifnull( y.yield, 0 ), 2 )) as efficiency
+		from ems_electric_power_consumption_statistics a
+		left join ems_meter_yield y on a.device_id = y.meter_code and a.data_date_key = y.data_month
+		where a.device_id = #{deviceId}
+		  and a.data_date_key BETWEEN #{qryStartTime} and #{qryEndTime}
+		  and a.data_type = #{temporalGranularity}
+		ORDER BY a.data_date_key desc
+	</select>
+</mapper>

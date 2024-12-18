@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.dcs.sx.dao.SxGcProdDao">
+
+	<!-- 查询数据
+	<select id="findList" resultType="SxGcProd">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select> -->
+
+	<!-- 设备运行记录 -->
+	<select id="deviceRunRecord" resultType="com.jeesite.modules.dcs.sx.dto.RunRecordDTO">
+		select device_code,
+		       device_name,
+		       record_date,
+			   (run_time_day + run_time_night) as run_time,
+		       (yield_day + yield_night) as yield,
+		       (meters_day + meters_night) as meters,
+			   round(ifnull((meters_day + meters_night)/(run_time_day + run_time_night),0),1) as work_efficiency
+		from dcs_sx_gc_prod
+		where device_code = #{deviceCode}
+		  and record_date between #{startDate} and #{endDate}
+		order by record_date desc
+	</select>
+
+	<!-- 设备运行时间 -->
+	<select id="deviceRunTime" resultType="com.jeesite.modules.dcs.sx.entity.SxGcProd">
+		select device_code,
+			   device_name,
+			   run_time_day,
+			   run_time_night,
+			   record_date
+		from dcs_sx_gc_prod
+		where device_code = #{deviceCode}
+		  and record_date between #{startDate} and #{endDate}
+		order by record_date
+	</select>
+
+
+	<!-- 稼动率 -->
+	<select id="deviceUtilization" resultType="com.jeesite.modules.dcs.sx.entity.SxGcProd">
+		select device_code,
+			   device_name,
+			   utilization_day,
+			   utilization_night,
+			   record_date
+		from dcs_sx_gc_prod
+		where device_code = #{deviceCode}
+		  and record_date = #{localDate}
+	</select>
+
+	<!-- 工效统计 -->
+	<select id="deviceWorkEfficiency" resultType="com.jeesite.modules.dcs.sx.dto.WorkEfficiencyDTO">
+		select device_code,
+			   device_name,
+			   round(ifnull((meters_day + meters_night)/(run_time_day + run_time_night),0),1) as work_efficiency,
+			   record_date
+		from dcs_sx_gc_prod
+		where device_code = #{deviceCode}
+		  and record_date between #{startDate} and #{endDate}
+		order by record_date
+	</select>
+
+	<!-- 切割米数 -->
+	<select id="deviceCuttingMeters" resultType="com.jeesite.modules.dcs.sx.entity.SxGcProd">
+		select device_code,
+			   device_name,
+			   meters_day,
+			   meters_night,
+			   record_date
+		from dcs_sx_gc_prod
+		where device_code = #{deviceCode}
+		  and record_date between #{startDate} and #{endDate}
+		order by record_date
+	</select>
+
+	<!-- 产量统计 -->
+	<select id="deviceYield" resultType="com.jeesite.modules.dcs.sx.dto.YieldDTO">
+		select device_code,
+			   device_name,
+			   (yield_day + yield_night) as yield,
+			   record_date
+		from dcs_sx_gc_prod
+		where device_code = #{deviceCode}
+		  and record_date between #{startDate} and #{endDate}
+		order by record_date
+	</select>
+</mapper>

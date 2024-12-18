@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.ems.dao.EmsAreaMeterDao">
+	
+	<!-- 查询数据
+	<select id="findList" resultType="EmsAreaMeter">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select> -->
+
+	<delete id="deleteOrm">
+		delete from ems_area_meter where meter_code = #{meterCode}
+	</delete>
+
+	<select id="meterSafetyRecListData"
+			parameterType="com.jeesite.modules.ems.entity.EmsMeterSafetyEntity"
+			resultType="com.jeesite.modules.ems.entity.EmsAlarmRecordEntity">
+		SELECT
+			event_type_msg  as eventTitle,
+			data_date_time as eventTime,
+			event_content as eventConstant
+		FROM ems_alarm_event
+		where device_id = #{deviceId} and data_date = #{qryDate}
+		ORDER BY data_date_time desc
+	</select>
+</mapper>

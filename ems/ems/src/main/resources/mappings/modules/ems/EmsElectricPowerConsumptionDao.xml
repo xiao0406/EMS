@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.ems.dao.EmsElectricPowerConsumptionDao">
+	
+	<!-- 查询数据 -->
+	<select id="findList" resultType="EmsElectricPowerConsumption">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+			<if test="qryStartTime !=null and qryEndTime !=null">
+				and a.data_date_time between #{qryStartTime} and #{qryEndTime}
+			</if>
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select>
+
+	<select id="findMeterSortList" resultType="EmsElectricPowerConsumption">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		join ems_meter b on a.device_id = b.meter_code
+		<where>
+			${sqlMap.where.toSql()}
+			<if test="qryStartTime !=null and qryEndTime !=null">
+				and a.data_date_time between #{qryStartTime} and #{qryEndTime}
+			</if>
+		</where>
+		ORDER BY a.data_date, b.sort
+	</select>
+
+	<select id="getStockPendulum" parameterType="EmsElectricPowerConsumption" resultType="date">
+		select
+			data_date_time
+		from ems_electric_power_consumption
+		where data_date = #{dataDate} and data_type = #{dataType}
+	</select>
+
+	<select id="isStockedRec" parameterType="EmsElectricPowerConsumption" resultType="EmsElectricPowerConsumption">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		where a.device_id = #{deviceId} and a.data_date_time = #{dataDateTime} and a.data_type = #{dataType}
+		ORDER BY a.data_date_time
+		LIMIT 1
+	</select>
+
+	<select id="getStageCumulativeConsumption" resultType="java.lang.Double">
+		select
+		sum(eepc.positive_active_energy)
+		from ems_electric_power_consumption eepc
+		where eepc.corp_code = #{corpCode}
+		    and eepc.company_code = #{companyCode}
+			<choose>
+				<when test="temporalGranularity == @com.jeesite.common.constant.enums.TemporalGranularityEnum@VD_Day">
+					and eepc.data_date_time between #{startTime} and #{endTime}
+				</when>
+				<otherwise>
+					and eepc.data_date_time <![CDATA[ > ]]> #{startTime}
+					and eepc.data_date_time <![CDATA[ <= ]]> #{endTime}
+				</otherwise>
+			</choose>
+			and eepc.data_type = #{temporalGranularity}
+			<if test="meterMarkList != null and meterMarkList.size() != 0">
+				and eepc.device_id in (
+					<foreach collection="meterMarkList" item="deviceCode" separator=",">
+						#{deviceCode}
+					</foreach>
+				)
+			</if>
+	</select>
+
+	<select id="getStageConsumption2EChart" resultType="com.jeesite.modules.ems.entity.EChartData">
+		select
+			DATE_FORMAT(eepc.data_date_time,#{format}) as label,
+			sum(eepc.positive_active_energy) as value
+		from ems_electric_power_consumption eepc
+		where eepc.corp_code = #{corpCode} and eepc.company_code = #{companyCode}
+		  <choose>
+			  <when test="temporalGranularity == @com.jeesite.common.constant.enums.TemporalGranularityEnum@VD_Day">
+				  and eepc.data_date_time between #{startTime} and #{endTime}
+			  </when>
+		      <otherwise>
+				  and eepc.data_date_time > #{startTime}
+				  and eepc.data_date_time <![CDATA[<=]]> #{endTime}
+		      </otherwise>
+		  </choose>
+			and eepc.data_type = #{temporalGranularity}
+			<if test="meterMarkList != null and meterMarkList.size() != 0">
+				and eepc.device_id in (
+					<foreach collection="meterMarkList" item="deviceCode" separator=",">
+						#{deviceCode}
+					</foreach>
+				)
+			</if>
+		group by eepc.data_date_time
+	</select>
+
+	<select id="activeEnergyEChart" parameterType="EmsElectricPowerConsumption" resultType="EmsElectricPowerConsumption">
+		select
+			eepc.data_date_time,
+			sum(eepc.positive_active_energy) as positive_active_energy,
+			sum(eepc.reverse_active_power) as reverse_active_power,
+			sum(eepc.positive_reactive_energy) as positive_reactive_energy,
+			sum(eepc.reverse_reactive_power) as reverse_reactive_power
+		from ems_area ea
+			join ems_area_meter eam on ea.area_code = eam.area_code
+			join ems_electric_power_consumption eepc on eam.meter_code = eepc.device_id
+		where ea.corp_code = #{corpCode}
+			<if test="areaCode !=null and areaCode !=''">
+				AND ( ea.area_code = #{areaCode} OR ea.parent_codes LIKE CONCAT('%', #{areaCode}, '%' ))
+			</if>
+			and eepc.data_date_time BETWEEN #{qryStartTime} and #{qryEndTime}
+			<if test="deviceId !=null and deviceId !=''">
+				and eepc.device_id = #{deviceId}
+			</if>
+			<if test="areaMarkList != null and areaMarkList.size() != 0">
+				and eepc.device_id in (
+				<foreach collection="areaMarkList" item="deviceCode" separator=",">
+					#{deviceCode}
+				</foreach>
+				)
+			</if>
+		    and eepc.data_type = #{dataType}
+		group by eepc.data_date_time
+	</select>
+
+	<select id="consumptionRanking" parameterType="EmsElectricPowerConsumption" resultType="com.jeesite.modules.ems.entity.EChartData">
+		SELECT
+			a.device_name as label,
+			a.positive_active_energy as value
+		from ems_electric_power_consumption a
+		<where>
+			${sqlMap.where.toSql()}
+		</where>
+		ORDER BY a.positive_active_energy desc
+	</select>
+
+	<select id="getAreaStageCumulativeConsumption" parameterType="EmsElectricPowerConsumption" resultType="EmsElectricPowerAreaConsumption">
+		SELECT
+		ANY_VALUE(eepc.data_date_time) as data_date_time,
+		ANY_VALUE(eepc.data_date) as data_date,
+		ANY_VALUE(eepc.data_time) as data_time,
+		ANY_VALUE(eepc.data_type) as data_type,
+		sum( eepc.positive_active_energy ) AS positive_active_energy,
+		sum( eepc.reverse_active_power ) AS reverse_active_power,
+		sum( eepc.positive_reactive_energy ) AS positive_reactive_energy,
+		sum( eepc.reverse_reactive_power ) AS reverse_reactive_power
+		FROM ems_area ea
+		JOIN ems_area_meter eam ON ea.area_code = eam.area_code
+		JOIN ems_electric_power_consumption eepc ON eam.meter_code = eepc.device_id
+		WHERE ea.corp_code = #{corpCode}
+		AND ( ea.area_code = #{areaCode} OR ea.parent_codes LIKE CONCAT('%', #{areaCode}, '%' ))
+		<if test="areaMarkList != null and areaMarkList.size() != 0">
+			and eepc.device_id in (
+			<foreach collection="areaMarkList" item="deviceCode" separator=",">
+				#{deviceCode}
+			</foreach>
+			)
+		</if>
+		AND eepc.data_date_time  = #{dataDateTime}
+		AND eepc.data_type = #{dataType}
+	</select>
+
+	<select id="getLastRecord" parameterType="EmsElectricPowerConsumption" resultType="EmsElectricPowerConsumption">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ems_electric_power_consumption a
+		WHERE
+			a.data_type = #{dataType}
+		AND a.device_id = #{deviceId}
+		AND a.data_date = #{dataDate}
+		ORDER BY
+			a.data_date_time
+		DESC
+		LIMIT 1
+	</select>
+
+</mapper>

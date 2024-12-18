@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.ems.dao.EmsElectricityTimeConfDao">
+	
+	<!-- 查询数据
+	<select id="findList" resultType="EmsElectricityTimeConf">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select> -->
+
+	<select id="getCompanyElectricityTimeConf" resultType="EmsElectricityTimeConf">
+		SELECT
+		    a.id,
+		    a.cusp_time_range,
+		    a.peak_time_range,
+		    a.fair_time_range,
+		    a.valley_time_range,
+			jsc.company_code,
+			jsc.company_name
+		FROM ${sqlMap.table.toSql()}
+		right join js_sys_company jsc on a.company_code = jsc.company_code
+		<where>
+			jsc.company_code = #{companyCode} and jsc.corp_code = #{corpCode}
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+		limit 1
+	</select>
+
+	<select id="getByCompanyCode" parameterType="EmsElectricityTimeConf" resultType="EmsElectricityTimeConf">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			a.company_code = #{companyCode} and a.corp_code = #{corpCode}
+		</where>
+		ORDER BY a.create_date
+		LIMIT 1
+	</select>
+</mapper>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.ems.dao.EmsAlarmEventDao">
+	
+	<!-- 查询数据 -->
+	<select id="findList" resultType="EmsAlarmEvent">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+			<if test="qryStartTime !=null and qryEndTime !=null">
+				and a.data_date_time between #{qryStartTime} and #{qryEndTime}
+			</if>
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select>
+
+	<!-- 查询数据 -->
+	<select id="findListByMin" resultType="java.lang.String">
+		SELECT device_id
+		FROM ems_alarm_event a
+		<where>
+			<if test="date !=null">
+				and a.create_date >= #{date}
+			</if>
+			<if test="deviceId !=null ">
+				and a.device_id = #{deviceId}
+			</if>
+		</where>
+
+	</select>
+
+
+	<!-- 查询数据 -->
+	<select id="getloseDataBy15Min" resultType="java.lang.String">
+		SELECT emcd.device_id
+		FROM `ems_meter_collected_data` emcd
+		where emcd.not_valid = '1'
+		<if test="date !=null">
+			and emcd.create_date > #{date}
+		</if>
+		  and not exists
+		      (select even.device_id from ems_alarm_event even where  even.device_id = emcd.device_id
+				<if test="date !=null">
+					and even.create_date > #{date}
+				</if> )
+	</select>
+</mapper>

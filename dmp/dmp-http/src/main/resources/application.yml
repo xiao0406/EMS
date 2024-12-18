@@ -1,0 +1,28 @@
+
+server:
+    port: 9000
+    # 优雅停机模式
+    shutdown: "graceful"
+spring:
+    application:
+        name: dmp-http
+    profiles:
+        active: dev
+    lifecycle:
+        # 优雅停机超时时间
+        timeout-per-shutdown-phase: "120s"
+    datasource:
+        hikari:
+            minimum-idle: 5
+            maximum-pool-size: 15
+            idle-timeout: 20000
+            max-lifetime: 180000
+            connection-timeout: 20000
+
+# Mybatis-plus配置
+mybatis-plus:
+    mapper-locations: classpath:com/cscec/**/*Mapper.xml
+    typeAliasesPackage: com.cscec.**.entity
+    configuration:
+        map-underscore-to-camel-case: true
+        cache-enabled: false

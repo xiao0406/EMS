@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.ems.dao.EmsTimeSharePowerConsumptionStatisticsDao">
+	
+	<!-- 查询数据 -->
+	<select id="findList" resultType="EmsTimeSharePowerConsumptionStatistics">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+			<if test="qryStartTime !=null and qryEndTime !=null">
+				and a.data_date_key between #{qryStartTime} and #{qryEndTime}
+			</if>
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select>
+
+	<select id="findMeterSortList" resultType="EmsTimeSharePowerConsumptionStatistics">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		join ems_meter b on a.device_id = b.meter_code
+		<where>
+			${sqlMap.where.toSql()}
+			<if test="qryStartTime !=null and qryEndTime !=null">
+				and a.data_date_key between #{qryStartTime} and #{qryEndTime}
+			</if>
+		</where>
+		ORDER BY a.data_date_key, b.sort
+	</select>
+
+	<select id="isStockedRec" parameterType="EmsTimeSharePowerConsumptionStatistics" resultType="EmsTimeSharePowerConsumptionStatistics">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		where a.device_id = #{deviceId} and a.data_date_key = #{dataDateKey} and a.data_type = #{dataType}
+		ORDER BY a.data_date_key
+		LIMIT 1
+	</select>
+
+	<select id="timeShareStatistics" resultType="com.jeesite.modules.ems.entity.TimeShareStatisticsEntity">
+		select
+			tmp.total_energy as totalEnergy,
+			tmp.cusp_time_energy as cuspTimeEnergy,
+			tmp.peak_time_energy as peakTimeEnergy,
+			tmp.fair_time_energy as fairTimeEnergy,
+			tmp.valley_time_energy as valleyTimeEnergy
+		from (
+				 select
+					 sum(etspc.total_energy) as total_energy,
+					 sum(etspc.cusp_time_energy) as cusp_time_energy,
+					 sum(etspc.peak_time_energy) as peak_time_energy,
+					 sum(etspc.fair_time_energy) as fair_time_energy,
+					 sum(etspc.valley_time_energy) as valley_time_energy
+				 from ems_time_share_power_consumption_statistics etspc
+				 where etspc.corp_code = #{corpCode}
+				   and etspc.device_id = #{deviceId}
+				   and etspc.data_date_key BETWEEN #{qryStartTime} and #{qryEndTime}
+				   and etspc.data_type = #{dataType}
+			 ) tmp
+	</select>
+
+	<select id="getAreaStageCumulativeConsumption" parameterType="EmsTimeSharePowerConsumptionStatistics" resultType="EmsTimeShareAreaPowerConsumptionStatistics">
+		SELECT
+			ANY_VALUE(eepc.data_date_key) as data_date_key,
+			ANY_VALUE(eepc.data_type) as data_type,
+			sum( eepc.total_energy ) AS total_energy,
+			sum( eepc.cusp_time_energy ) AS cusp_time_energy,
+			sum( eepc.peak_time_energy ) AS peak_time_energy,
+			sum( eepc.fair_time_energy ) AS fair_time_energy,
+			sum( eepc.valley_time_energy ) AS valley_time_energy
+		FROM ems_area ea
+			JOIN ems_area_meter eam ON ea.area_code = eam.area_code
+			JOIN ems_time_share_power_consumption_statistics eepc ON eam.meter_code = eepc.device_id
+		WHERE ea.corp_code = #{corpCode}
+			AND ( ea.area_code = #{areaCode} OR ea.parent_codes LIKE CONCAT('%', #{areaCode}, '%' ))
+			<if test="meterMarkList != null and meterMarkList.size() != 0">
+				and eepc.device_id in (
+				<foreach collection="meterMarkList" item="deviceCode" separator=",">
+					#{deviceCode}
+				</foreach>
+				)
+			</if>
+			AND eepc.data_date_key  = #{dataDateKey}
+			AND eepc.data_type = #{dataType}
+	</select>
+
+	<select id="findTimeShareList" parameterType="EmsTimeSharePowerConsumptionStatistics" resultType="com.jeesite.modules.ems.entity.TimeSharePowerConsumptionEntity">
+		select
+			a.data_date_key as dateTime,
+			a.device_name as typeInfo,
+			a.total_energy as totalEnergy,
+			a.cusp_time_energy as cuspTimeEnergy,
+			a.peak_time_energy as peakTimeEnergy,
+			a.fair_time_energy as fairTimeEnergy,
+			a.valley_time_energy as valleyTimeEnergy
+		from ems_time_share_power_consumption_statistics a
+		where a.corp_code = #{corpCode}
+		  and a.device_id = #{deviceId}
+		  and a.data_date_key BETWEEN #{qryStartTime} and #{qryEndTime}
+		  and a.data_type = #{dataType}
+		order by a.data_date_key desc
+	</select>
+</mapper>

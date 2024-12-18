@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.ems.dao.EmsConsumptionRankingSummaryDao">
+
+    <!-- 查询数据
+    <select id="findList" resultType="EmsConsumptionRankingSummary">
+        SELECT ${sqlMap.column.toSql()}
+        FROM ${sqlMap.table.toSql()}
+        <where>
+            ${sqlMap.where.toSql()}
+        </where>
+        ORDER BY ${sqlMap.order.toSql()}
+    </select> -->
+
+    <select id="findOne" resultType="com.jeesite.modules.ems.entity.EmsConsumptionRankingSummary">
+        select * from ems_consumption_ranking_summary
+        <where>
+            <if test='companyCode != null and companyCode != ""'>
+                and company_code = #{companyCode}
+            </if>
+            <if test='temporalgranularity != null and temporalgranularity != ""'>
+                and temporalgranularity = #{temporalgranularity}
+            </if>
+        </where>
+    </select>
+
+</mapper>

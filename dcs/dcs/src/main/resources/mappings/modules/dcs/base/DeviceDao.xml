@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.dcs.base.dao.DeviceDao">
+
+	<!-- 查询数据 -->
+<!--	<select id="findList" resultType="com.jeesite.modules.dcs.base.entity.Device">-->
+<!--		SELECT ${sqlMap.column.toSql()}-->
+<!--		FROM ${sqlMap.table.toSql()}-->
+<!--		<where>-->
+<!--			${sqlMap.where.toSql()}-->
+<!--		</where>-->
+<!--		ORDER BY ${sqlMap.order.toSql()}-->
+<!--	</select>-->
+
+<!--	<select id="findList" resultType="com.jeesite.modules.dcs.base.entity.Device">-->
+<!--		SELECT *-->
+<!--		FROM dcs_device d-->
+<!--		JOIN `js_sys_employee` se ON d.create_by = se.emp_code-->
+<!--		<where>-->
+<!--			d.status = '0'-->
+<!--			${sqlMap.dsf}-->
+<!--		</where>-->
+<!--		ORDER BY d.device_code-->
+<!--	</select>-->
+
+	<select id="findDeviceList" parameterType="com.jeesite.modules.dcs.base.dto.DeviceDTO" resultType="com.jeesite.modules.dcs.base.dto.DeviceDTO">
+		select
+		       device_code,
+		       device_name,
+		       device_number,
+		       device_type,
+		       device_brand,
+		       device_model,
+		       run_status,
+			   office_code,
+		       office_name,
+		       image_url
+		from dcs_device
+		<where>
+			<if test="id != null and id > 0">
+				and id = #{id}
+			</if>
+			<if test="deviceCode != null">
+				and device_code = #{deviceCode}
+			</if>
+			<if test="deviceName != null">
+				and device_name like CONCAT('%', #{deviceName}, '%')
+			</if>
+			<if test="deviceType != null and deviceType > 0">
+				and device_type = #{deviceType}
+			</if>
+			<if test="deviceBrand != null">
+				and device_brand = #{deviceBrand}
+			</if>
+			<if test="deviceModel != null">
+				and device_model = #{deviceModel}
+			</if>
+			<if test="runStatus != null and runStatus > 0">
+				and run_status = #{runStatus}
+			</if>
+			<if test="officeCode != null">
+				and office_code = #{officeCode}
+			</if>
+		</where>
+	</select>
+</mapper>

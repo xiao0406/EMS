@@ -1,0 +1,146 @@
+<% layout('/layouts/default.html', {title: '区域峰平谷电耗表数据统计表管理', libs: ['dataGrid']}){ %>
+<div class="main-content">
+	<div class="box box-main">
+		<div class="box-header">
+			<div class="box-title">
+				<i class="fa icon-notebook"></i> ${text('区域峰平谷电耗表数据统计表管理')}
+			</div>
+			<div class="box-tools pull-right">
+				<a href="#" class="btn btn-default" id="btnSearch" title="${text('查询')}"><i class="fa fa-filter"></i> ${text('查询')}</a>
+				<% if(hasPermi('ems:emsTimeShareAreaPowerConsumptionStatistics:edit')){ %>
+					<a href="${ctx}/ems/emsTimeShareAreaPowerConsumptionStatistics/form" class="btn btn-default btnTool" title="${text('新增区域峰平谷电耗表数据统计表')}"><i class="fa fa-plus"></i> ${text('新增')}</a>
+				<% } %>
+				<a href="#" class="btn btn-default" id="btnSetting" title="${text('设置')}"><i class="fa fa-navicon"></i></a>
+			</div>
+		</div>
+		<div class="box-body">
+			<#form:form id="searchForm" model="${emsTimeShareAreaPowerConsumptionStatistics}" action="${ctx}/ems/emsTimeShareAreaPowerConsumptionStatistics/listData" method="post" class="form-inline hide"
+					data-page-no="${parameter.pageNo}" data-page-size="${parameter.pageSize}" data-order-by="${parameter.orderBy}">
+				<div class="form-group">
+					<label class="control-label">${text('区域编码')}：</label>
+					<div class="control-inline">
+						<#form:input path="areaCode" maxlength="32" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('区域名称')}：</label>
+					<div class="control-inline">
+						<#form:input path="areaName" maxlength="100" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('数据时间键值，字符串， 2023-03')}：</label>
+					<div class="control-inline">
+						<#form:input path="dataDateKey" maxlength="20" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('数据类型')}：</label>
+					<div class="control-inline">
+						<#form:input path="dataType" maxlength="10" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('总')}：</label>
+					<div class="control-inline">
+						<#form:input path="totalEnergy" maxlength="12" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('尖')}：</label>
+					<div class="control-inline">
+						<#form:input path="cuspTimeEnergy" maxlength="12" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('峰')}：</label>
+					<div class="control-inline">
+						<#form:input path="peakTimeEnergy" maxlength="12" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('平')}：</label>
+					<div class="control-inline">
+						<#form:input path="fairTimeEnergy" maxlength="12" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('谷')}：</label>
+					<div class="control-inline">
+						<#form:input path="valleyTimeEnergy" maxlength="12" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('备注信息')}：</label>
+					<div class="control-inline">
+						<#form:input path="remarks" maxlength="255" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('公司编码')}：</label>
+					<div class="control-inline">
+						<#form:input path="companyCode" maxlength="100" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('公司名称')}：</label>
+					<div class="control-inline">
+						<#form:input path="companyName" maxlength="100" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<button type="submit" class="btn btn-primary btn-sm">${text('查询')}</button>
+					<button type="reset" class="btn btn-default btn-sm">${text('重置')}</button>
+				</div>
+			</#form:form>
+			<table id="dataGrid"></table>
+			<div id="dataGridPage"></div>
+		</div>
+	</div>
+</div>
+<% } %>
+<script>
+// 初始化DataGrid对象
+$('#dataGrid').dataGrid({
+	searchForm: $("#searchForm"),
+	columnModel: [
+		{header:'${text("区域编码")}', name:'areaCode', index:'a.area_code', width:150, align:"left", frozen:true, formatter: function(val, obj, row, act){
+			return '<a href="${ctx}/ems/emsTimeShareAreaPowerConsumptionStatistics/form?id='+row.id+'" class="btnList" data-title="${text("编辑区域峰平谷电耗表数据统计表")}">'+(val||row.id)+'</a>';
+		}},
+		{header:'${text("区域名称")}', name:'areaName', index:'a.area_name', width:150, align:"left"},
+		{header:'${text("数据时间键值，字符串， 2023-03")}', name:'dataDateKey', index:'a.data_date_key', width:150, align:"left"},
+		{header:'${text("数据类型")}', name:'dataType', index:'a.data_type', width:150, align:"left"},
+		{header:'${text("总")}', name:'totalEnergy', index:'a.total_energy', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("尖")}', name:'cuspTimeEnergy', index:'a.cusp_time_energy', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("峰")}', name:'peakTimeEnergy', index:'a.peak_time_energy', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("平")}', name:'fairTimeEnergy', index:'a.fair_time_energy', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("谷")}', name:'valleyTimeEnergy', index:'a.valley_time_energy', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("更新时间")}', name:'updateDate', index:'a.update_date', width:150, align:"center"},
+		{header:'${text("备注信息")}', name:'remarks', index:'a.remarks', width:150, align:"left"},
+		{header:'${text("公司编码")}', name:'companyCode', index:'a.company_code', width:150, align:"left"},
+		{header:'${text("公司名称")}', name:'companyName', index:'a.company_name', width:150, align:"left"},
+		{header:'${text("操作")}', name:'actions', width:120, formatter: function(val, obj, row, act){
+			var actions = [];
+			<% if(hasPermi('ems:emsTimeShareAreaPowerConsumptionStatistics:edit')){ %>
+				actions.push('<a href="${ctx}/ems/emsTimeShareAreaPowerConsumptionStatistics/form?id='+row.id+'" class="btnList" title="${text("编辑区域峰平谷电耗表数据统计表")}"><i class="fa fa-pencil"></i></a>&nbsp;');
+				actions.push('<a href="${ctx}/ems/emsTimeShareAreaPowerConsumptionStatistics/delete?id='+row.id+'" class="btnList" title="${text("删除区域峰平谷电耗表数据统计表")}" data-confirm="${text("确认要删除该区域峰平谷电耗表数据统计表吗？")}"><i class="fa fa-trash-o"></i></a>&nbsp;');
+			<% } %>
+			return actions.join('');
+		}}
+	],
+	// 加载成功后执行事件
+	ajaxSuccess: function(data){
+		
+	}
+});
+</script>

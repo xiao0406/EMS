@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.ems.dao.EmsMeterYieldDao">
+
+	<!-- 查询数据 -->
+	<select id="findList" resultType="EmsMeterYield">
+		SELECT
+			b.`meter_code` AS "meterCode",
+			b.`meter_name` AS "meterName",
+			#{dataMonth} AS "dataMonth",
+			a.`yield` AS "yield",
+			a.`create_by` AS "createBy",
+			a.`create_date` AS "createDate",
+			a.`update_by` AS "updateBy",
+			a.`update_date` AS "updateDate",
+			a.`remarks` AS "remarks",
+			a.`corp_code` AS "corpCode",
+			a.`corp_name` AS "corpName",
+			if(a.`yield` is null, true, false) as isNewRecord
+		FROM (
+			select
+			    meter_code,
+				meter_name,
+				sort
+			from ems_meter
+			<where>
+				status = '0'
+				<if test="corpCode !=null and corpCode !=''">
+					and corp_code = #{corpCode}
+				</if>
+				<if test="companyCode !=null and companyCode !=''">
+					and company_code = #{companyCode}
+				</if>
+			</where>
+		) b
+		left JOIN `ems_meter_yield` a ON a.meter_code = b.meter_code and a.data_month = #{dataMonth}
+		ORDER BY b.sort
+	</select>
+
+</mapper>

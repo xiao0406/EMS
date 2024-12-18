@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.ems.dao.EmsTimeShareDeviceRuntimeDao">
+	
+
+	<select id="findList" resultType="EmsTimeShareDeviceRuntime">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+			<if test="dataDateStart !=null and dataDateEnd !=null">
+				and a.data_date between #{dataDateStart} and #{dataDateEnd}
+			</if>
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select>
+
+	<select id="findMeterSortList" resultType="EmsTimeShareDeviceRuntime">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		join ems_meter b on a.device_id = b.meter_code
+		<where>
+			${sqlMap.where.toSql()}
+			<if test="dataDateStart !=null and dataDateEnd !=null">
+				and a.data_date between #{dataDateStart} and #{dataDateEnd}
+			</if>
+		</where>
+		ORDER BY a.data_date, b.sort
+	</select>
+
+	<select id="isStockedRec" parameterType="EmsTimeShareDeviceRuntime" resultType="EmsTimeShareDeviceRuntime">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		where a.device_id = #{deviceId} and a.data_date = #{dataDate} and a.data_type = #{dataType}
+		ORDER BY a.data_date
+			LIMIT 1
+	</select>
+
+</mapper>

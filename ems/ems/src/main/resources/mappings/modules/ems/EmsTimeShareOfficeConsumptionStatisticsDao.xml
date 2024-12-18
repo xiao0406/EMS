@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.ems.dao.EmsTimeShareOfficeConsumptionStatisticsDao">
+	
+	<!-- 查询数据 -->
+	<select id="findList" resultType="EmsTimeShareOfficeConsumptionStatistics">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+			<if test="qryStartTime !=null and qryEndTime !=null">
+				and a.data_date_key between #{qryStartTime} and #{qryEndTime}
+			</if>
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select>
+
+	<select id="isStockedRec" parameterType="EmsTimeShareOfficeConsumptionStatistics" resultType="EmsTimeShareOfficeConsumptionStatistics">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		where a.office_code = #{officeCode} and a.device_id = #{deviceId} and a.data_date_key = #{dataDateKey} and a.data_type = #{dataType}
+		ORDER BY a.data_date_key
+			LIMIT 1
+	</select>
+
+	<select id="findOfficeList" resultType="EmsTimeShareOfficeConsumptionStatistics">
+		SELECT
+		ANY_VALUE(a.`office_code`) AS "officeCode",
+		ANY_VALUE(a.`office_name`) AS "officeName",
+		ANY_VALUE(a.`data_date_key`) AS "dataDateKey",
+		ANY_VALUE(a.`data_type`) AS "dataType",
+		SUM(a.`total_energy`) AS "totalEnergy",
+		SUM(a.`cusp_time_energy`) AS "cuspTimeEnergy",
+		SUM(a.`peak_time_energy`) AS "peakTimeEnergy",
+		SUM(a.`fair_time_energy`) AS "fairTimeEnergy",
+		SUM(a.`valley_time_energy`) AS "valleyTimeEnergy"
+		FROM ${sqlMap.table.toSql()}
+		join js_sys_office jso on a.office_code = jso.office_code
+		<where>
+			${sqlMap.where.toSql()}
+			<if test="qryStartTime !=null and qryEndTime !=null">
+				and a.data_date_key between #{qryStartTime} and #{qryEndTime}
+			</if>
+		</where>
+		GROUP BY a.`office_code`,a.`data_date_key`
+		ORDER BY a.`data_date_key`, jso.tree_sort
+	</select>
+</mapper>

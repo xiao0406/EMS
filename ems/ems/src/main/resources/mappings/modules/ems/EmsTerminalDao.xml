@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.ems.dao.EmsTerminalDao">
+	
+	<!-- 查询数据
+	<select id="findList" resultType="EmsTerminal">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select> -->
+
+	<resultMap id="listMap" type="EmsTerminal">
+		<!--team中的基本属性-->
+		<id column="terminal_code" property="terminalCode"/>
+		<result column="terminal_name" property="terminalName"/>
+		<result column="terminal_type" property="terminalType"/>
+		<result column="brand_model" property="brandModel"/>
+		<result column="terminal_sim" property="terminalSim"/>
+		<result column="uplink" property="uplink"/>
+		<result column="downlink" property="downlink"/>
+		<result column="mobile_operator" property="mobileOperator"/>
+		<result column="mobile_type" property="mobileType"/>
+		<result column="mobile_expenses" property="mobileExpenses"/>
+		<result column="start_date" property="startDate"/>
+		<result column="end_date" property="endDate"/>
+
+		<!--关联属性的映射关系-->
+		<collection property="meterList" javaType="list" ofType="EmsMeter">
+			<id column="meter_code" property="meterCode"/>
+			<result column="meter_name" property="meterName"/>
+		</collection>
+	</resultMap>
+
+	<sql id="listColumn">
+		et.terminal_code,
+		et.terminal_name,
+		et.terminal_type,
+		et.brand_model,
+		et.terminal_sim,
+		et.uplink,
+		et.downlink,
+		et.mobile_operator,
+		et.mobile_type,
+		et.mobile_expenses,
+		et.start_date,
+		et.end_date,
+		em.meter_code,
+		em.meter_name
+	</sql>
+
+	<sql id="listTables">
+		FROM ems_terminal et
+		left join ems_terminal_meter etm on et.terminal_code = etm.terminal_code
+		left join ems_meter em on em.meter_code = etm.meter_code
+	</sql>
+
+	<select id="findByCode" resultMap="listMap">
+		SELECT
+		<include refid="listColumn"></include>
+		<include refid="listTables"></include>
+		where et.terminal_code = #{terminalCode}
+	</select>
+
+	<update id="deleteBatch" parameterType="EmsTerminal">
+		<if test="id_in != null and id_in.length > 0">
+			update ems_terminal
+			set status = '1'
+			where terminal_code in(
+				<foreach collection="id_in" item="id" separator=",">
+					#{id}
+				</foreach>
+			)
+		</if>
+	</update>
+
+	<select id="findCodes" resultType="java.lang.String">
+		SELECT terminal_code
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select>
+
+	<select id="getById" resultType="EmsTerminal">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		where terminal_code = #{terminalCode}
+		limit 1
+	</select>
+</mapper>

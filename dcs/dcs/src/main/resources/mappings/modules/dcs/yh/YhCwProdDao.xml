@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.dcs.yh.dao.YhCwProdDao">
+
+	<!-- 查询数据
+	<select id="findList" resultType="YhCwProd">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			${sqlMap.where.toSql()}
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select> -->
+
+	<update id="updateData" parameterType="com.jeesite.modules.dcs.yh.entity.YhCwProd">
+		update dcs_yh_cw_prod
+		set wire_length = #{wireLength},
+		    wire_weight = #{wireWeight},
+			day_run_time = #{dayRunTime},
+			night_run_time = #{nightRunTime},
+			day_utilization_rate = #{dayUtilizationRate},
+			night_utilization_rate = #{nightUtilizationRate},
+			day_capacity = #{dayCapacity},
+			night_capacity = #{nightCapacity},
+		    update_date = #{updateDate}
+		where device_code = #{deviceCode}
+		and record_date = #{recordDate}
+	</update>
+
+	<!-- 设备运行时间 -->
+	<select id="deviceRunTime" resultType="com.jeesite.modules.dcs.yh.entity.YhCwProd">
+		select device_code,
+		       device_name,
+		       day_run_time,
+		       night_run_time,
+		       record_date
+		from dcs_yh_cw_prod
+		where device_code = #{deviceCode}
+		  and record_date between #{startDate} and #{endDate}
+		order by record_date
+	</select>
+
+	<!-- 焊丝用量 -->
+	<select id="deviceWire" resultType="com.jeesite.modules.dcs.yh.entity.YhCwProd">
+		select device_code,
+			   device_name,
+			   wire_length,
+		       wire_weight,
+			   record_date
+		from dcs_yh_cw_prod
+		where device_code = #{deviceCode}
+		  and record_date between #{startDate} and #{endDate}
+		order by record_date
+	</select>
+
+	<!-- 焊接数量 -->
+	<select id="deviceCapacity" resultType="com.jeesite.modules.dcs.yh.dto.DeviceCapacityDTO">
+		select device_code,
+			   device_name,
+			   (day_capacity + night_capacity) as capacity,
+			   record_date
+		from dcs_yh_cw_prod
+		where device_code = #{deviceCode}
+		  and record_date between #{startDate} and #{endDate}
+		order by record_date
+	</select>
+
+	<!-- 稼动率 -->
+	<select id="deviceUtilization" resultType="com.jeesite.modules.dcs.yh.entity.YhCwProd">
+		select device_code,
+			   device_name,
+			   day_utilization_rate,
+		       night_utilization_rate,
+			   record_date
+		from dcs_yh_cw_prod
+		where device_code = #{deviceCode}
+		  and record_date = #{localDate}
+	</select>
+</mapper>

@@ -1,0 +1,323 @@
+<% layout('/layouts/default.html', {title: '电表采集数据管理', libs: ['dataGrid']}){ %>
+<div class="main-content">
+	<div class="box box-main">
+		<div class="box-header">
+			<div class="box-title">
+				<i class="fa icon-notebook"></i> ${text('电表采集数据管理')}
+			</div>
+			<div class="box-tools pull-right">
+				<a href="#" class="btn btn-default" id="btnSearch" title="${text('查询')}"><i class="fa fa-filter"></i> ${text('查询')}</a>
+				<% if(hasPermi('ems:emsMeterCollectedData:edit')){ %>
+					<a href="${ctx}/ems/emsMeterCollectedData/form" class="btn btn-default btnTool" title="${text('新增电表采集数据')}"><i class="fa fa-plus"></i> ${text('新增')}</a>
+				<% } %>
+				<a href="#" class="btn btn-default" id="btnSetting" title="${text('设置')}"><i class="fa fa-navicon"></i></a>
+			</div>
+		</div>
+		<div class="box-body">
+			<#form:form id="searchForm" model="${emsMeterCollectedData}" action="${ctx}/ems/emsMeterCollectedData/listData" method="post" class="form-inline hide"
+					data-page-no="${parameter.pageNo}" data-page-size="${parameter.pageSize}" data-order-by="${parameter.orderBy}">
+				<div class="form-group">
+					<label class="control-label">${text('设备ID')}：</label>
+					<div class="control-inline">
+						<#form:input path="deviceId" maxlength="32" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('设备名称')}：</label>
+					<div class="control-inline">
+						<#form:input path="deviceName" maxlength="100" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('数据时间， 2023-03-24 22')}：</label>
+					<div class="control-inline">
+						<#form:input path="dataDateTime" readonly="true" maxlength="20" class="form-control laydate width-datetime"
+							dataFormat="datetime" data-type="datetime" data-format="yyyy-MM-dd HH:mm"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('数据日期， 2023-03-24')}：</label>
+					<div class="control-inline">
+						<#form:input path="dataDate" readonly="true" maxlength="20" class="form-control laydate width-datetime"
+							dataFormat="datetime" data-type="datetime" data-format="yyyy-MM-dd HH:mm"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('数据时间， 22')}：</label>
+					<div class="control-inline">
+						<#form:input path="dataTime" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('数据类型')}：</label>
+					<div class="control-inline">
+						<#form:input path="dataType" maxlength="10" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('正向有功电能')}：</label>
+					<div class="control-inline">
+						<#form:input path="positiveActiveEnergy" maxlength="12" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('反向有功电能')}：</label>
+					<div class="control-inline">
+						<#form:input path="reverseActiveEnergy" maxlength="12" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('正向无功电能')}：</label>
+					<div class="control-inline">
+						<#form:input path="positiveReactiveEnergy" maxlength="12" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('反向无功电能')}：</label>
+					<div class="control-inline">
+						<#form:input path="reverseReactiveEnergy" maxlength="12" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('A相电压')}：</label>
+					<div class="control-inline">
+						<#form:input path="aphaseV" maxlength="6" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('B相电压')}：</label>
+					<div class="control-inline">
+						<#form:input path="bphaseV" maxlength="6" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('C相电压')}：</label>
+					<div class="control-inline">
+						<#form:input path="cphaseV" maxlength="6" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('A相电流')}：</label>
+					<div class="control-inline">
+						<#form:input path="aphaseA" maxlength="6" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('B相电流')}：</label>
+					<div class="control-inline">
+						<#form:input path="bphaseA" maxlength="6" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('C相电流')}：</label>
+					<div class="control-inline">
+						<#form:input path="cphaseA" maxlength="6" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('总有功功率')}：</label>
+					<div class="control-inline">
+						<#form:input path="totalAp" maxlength="9" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('A相有功功率')}：</label>
+					<div class="control-inline">
+						<#form:input path="aphaseAp" maxlength="9" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('B相有功功率')}：</label>
+					<div class="control-inline">
+						<#form:input path="bphaseAp" maxlength="9" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('C相有功功率')}：</label>
+					<div class="control-inline">
+						<#form:input path="cphaseAp" maxlength="9" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('总无功功率')}：</label>
+					<div class="control-inline">
+						<#form:input path="totalRp" maxlength="9" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('A相无功功率')}：</label>
+					<div class="control-inline">
+						<#form:input path="aphaseRp" maxlength="9" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('B相无功功率')}：</label>
+					<div class="control-inline">
+						<#form:input path="bphaseRp" maxlength="9" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('C相无功功率')}：</label>
+					<div class="control-inline">
+						<#form:input path="cphaseRp" maxlength="9" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('总功率因数')}：</label>
+					<div class="control-inline">
+						<#form:input path="totalPf" maxlength="4" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('A相功率因数')}：</label>
+					<div class="control-inline">
+						<#form:input path="aphasePf" maxlength="4" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('B相功率因数')}：</label>
+					<div class="control-inline">
+						<#form:input path="bphasePf" maxlength="4" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('C相功率因数')}：</label>
+					<div class="control-inline">
+						<#form:input path="cphasePf" maxlength="4" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('设备上传时间')}：</label>
+					<div class="control-inline">
+						<#form:input path="mqttTs" readonly="true" maxlength="20" class="form-control laydate width-datetime"
+							dataFormat="datetime" data-type="datetime" data-format="yyyy-MM-dd HH:mm"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('数据区域编号')}：</label>
+					<div class="control-inline">
+						<#form:input path="zoneCode" maxlength="10" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('状态')}：</label>
+					<div class="control-inline">
+						<#form:input path="isValid" maxlength="1" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('备注信息')}：</label>
+					<div class="control-inline">
+						<#form:input path="remarks" maxlength="255" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<button type="submit" class="btn btn-primary btn-sm">${text('查询')}</button>
+					<button type="reset" class="btn btn-default btn-sm">${text('重置')}</button>
+				</div>
+			</#form:form>
+			<table id="dataGrid"></table>
+			<div id="dataGridPage"></div>
+		</div>
+	</div>
+</div>
+<% } %>
+<script>
+// 初始化DataGrid对象
+$('#dataGrid').dataGrid({
+	searchForm: $("#searchForm"),
+	columnModel: [
+		{header:'${text("设备ID")}', name:'deviceId', index:'a.device_id', width:150, align:"left", frozen:true, formatter: function(val, obj, row, act){
+			return '<a href="${ctx}/ems/emsMeterCollectedData/form?id='+row.id+'" class="btnList" data-title="${text("编辑电表采集数据")}">'+(val||row.id)+'</a>';
+		}},
+		{header:'${text("设备名称")}', name:'deviceName', index:'a.device_name', width:150, align:"left"},
+		{header:'${text("数据时间， 2023-03-24 22")}', name:'dataDateTime', index:'a.data_date_time', width:150, align:"center"},
+		{header:'${text("数据日期， 2023-03-24")}', name:'dataDate', index:'a.data_date', width:150, align:"center"},
+		{header:'${text("数据时间， 22")}', name:'dataTime', index:'a.data_time', width:150, align:"left"},
+		{header:'${text("数据类型")}', name:'dataType', index:'a.data_type', width:150, align:"left"},
+		{header:'${text("正向有功电能")}', name:'positiveActiveEnergy', index:'a.positive_active_energy', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("反向有功电能")}', name:'reverseActiveEnergy', index:'a.reverse_active_energy', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("正向无功电能")}', name:'positiveReactiveEnergy', index:'a.positive_reactive_energy', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("反向无功电能")}', name:'reverseReactiveEnergy', index:'a.reverse_reactive_energy', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("A相电压")}', name:'aphaseV', index:'a.a_phase_v', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("B相电压")}', name:'bphaseV', index:'a.b_phase_v', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("C相电压")}', name:'cphaseV', index:'a.c_phase_v', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("A相电流")}', name:'aphaseA', index:'a.a_phase_a', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("B相电流")}', name:'bphaseA', index:'a.b_phase_a', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("C相电流")}', name:'cphaseA', index:'a.c_phase_a', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("总有功功率")}', name:'totalAp', index:'a.total_ap', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("A相有功功率")}', name:'aphaseAp', index:'a.a_phase_ap', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("B相有功功率")}', name:'bphaseAp', index:'a.b_phase_ap', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("C相有功功率")}', name:'cphaseAp', index:'a.c_phase_ap', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("总无功功率")}', name:'totalRp', index:'a.total_rp', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("A相无功功率")}', name:'aphaseRp', index:'a.a_phase_rp', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("B相无功功率")}', name:'bphaseRp', index:'a.b_phase_rp', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("C相无功功率")}', name:'cphaseRp', index:'a.c_phase_rp', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("总功率因数")}', name:'totalPf', index:'a.total_pf', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("A相功率因数")}', name:'aphasePf', index:'a.a_phase_pf', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("B相功率因数")}', name:'bphasePf', index:'a.b_phase_pf', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("C相功率因数")}', name:'cphasePf', index:'a.c_phase_pf', width:150, align:"right", formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 2, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("设备上传时间")}', name:'mqttTs', index:'a.mqtt_ts', width:150, align:"center"},
+		{header:'${text("数据区域编号")}', name:'zoneCode', index:'a.zone_code', width:150, align:"left"},
+		{header:'${text("状态")}', name:'isValid', index:'a.is_valid', width:150, align:"left"},
+		{header:'${text("更新时间")}', name:'updateDate', index:'a.update_date', width:150, align:"center"},
+		{header:'${text("备注信息")}', name:'remarks', index:'a.remarks', width:150, align:"left"},
+		{header:'${text("操作")}', name:'actions', width:120, formatter: function(val, obj, row, act){
+			var actions = [];
+			<% if(hasPermi('ems:emsMeterCollectedData:edit')){ %>
+				actions.push('<a href="${ctx}/ems/emsMeterCollectedData/form?id='+row.id+'" class="btnList" title="${text("编辑电表采集数据")}"><i class="fa fa-pencil"></i></a>&nbsp;');
+				actions.push('<a href="${ctx}/ems/emsMeterCollectedData/delete?id='+row.id+'" class="btnList" title="${text("删除电表采集数据")}" data-confirm="${text("确认要删除该电表采集数据吗？")}"><i class="fa fa-trash-o"></i></a>&nbsp;');
+			<% } %>
+			return actions.join('');
+		}}
+	],
+	// 加载成功后执行事件
+	ajaxSuccess: function(data){
+		
+	}
+});
+</script>
